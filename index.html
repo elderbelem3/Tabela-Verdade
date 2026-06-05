@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Tabela Verdade</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f4f4;
+    margin:0;
+    padding:20px;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+h1{
+    text-align:center;
+}
+
+.controls{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+input{
+    padding:10px;
+    font-size:16px;
+}
+
+button{
+    padding:10px 20px;
+    font-size:16px;
+    cursor:pointer;
+    border:none;
+    background:#0078ff;
+    color:white;
+    border-radius:5px;
+}
+
+button:hover{
+    opacity:0.9;
+}
+
+.table-container{
+    overflow:auto;
+    max-height:700px;
+}
+
+table{
+    border-collapse:collapse;
+    width:100%;
+}
+
+th{
+    background:#0078ff;
+    color:white;
+    position:sticky;
+    top:0;
+}
+
+th, td{
+    border:1px solid #ccc;
+    padding:8px;
+    text-align:center;
+}
+
+tr:nth-child(even){
+    background:#f9f9f9;
+}
+
+.info{
+    margin-bottom:15px;
+    font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Gerador de Tabela Verdade</h1>
+
+    <div class="controls">
+        <input
+            type="number"
+            id="numVariaveis"
+            min="1"
+            max="8"
+            placeholder="Quantidade de variáveis (1-8)"
+        >
+
+        <button onclick="gerarTabela()">
+            Gerar Tabela
+        </button>
+    </div>
+
+    <div class="info" id="info"></div>
+
+    <div class="table-container">
+        <div id="resultado"></div>
+    </div>
+
+</div>
+
+<script>
+
+function gerarTabela() {
+
+    const n = parseInt(
+        document.getElementById("numVariaveis").value
+    );
+
+    if (isNaN(n) || n < 1 || n > 8) {
+        alert("Digite um número entre 1 e 8.");
+        return;
+    }
+
+    const totalLinhas = Math.pow(2, n);
+
+    let html = "<table>";
+
+    html += "<thead><tr>";
+
+    for(let i = 0; i < n; i++) {
+        html += `<th>${String.fromCharCode(65 + i)}</th>`;
+    }
+
+    html += "</tr></thead>";
+
+    html += "<tbody>";
+
+    for(let linha = 0; linha < totalLinhas; linha++) {
+
+        html += "<tr>";
+
+        for(let coluna = 0; coluna < n; coluna++) {
+
+            const valor =
+                (linha >> (n - coluna - 1)) & 1;
+
+            html += `<td>${valor}</td>`;
+        }
+
+        html += "</tr>";
+    }
+
+    html += "</tbody></table>";
+
+    document.getElementById("resultado").innerHTML = html;
+
+    document.getElementById("info").innerHTML =
+        `Variáveis: ${n} | Combinações: ${totalLinhas}`;
+}
+
+</script>
+
+</body>
+</html>
