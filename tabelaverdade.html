@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tabela Verdade</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f2f2f2;
+    margin:0;
+    padding:20px;
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,.15);
+}
+
+h1{
+    text-align:center;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    font-size:18px;
+    margin-bottom:10px;
+    box-sizing:border-box;
+}
+
+button{
+    padding:12px 20px;
+    font-size:16px;
+    cursor:pointer;
+    border:none;
+    border-radius:5px;
+    background:#0078ff;
+    color:white;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+#info{
+    margin-top:15px;
+    margin-bottom:15px;
+    font-weight:bold;
+}
+
+.table-container{
+    overflow:auto;
+    max-height:700px;
+}
+
+table{
+    border-collapse:collapse;
+    width:100%;
+}
+
+th{
+    background:#0078ff;
+    color:white;
+    position:sticky;
+    top:0;
+}
+
+th, td{
+    border:1px solid #ccc;
+    padding:8px;
+    text-align:center;
+}
+
+tr:nth-child(even){
+    background:#f8f8f8;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>Gerador de Tabela Verdade</h1>
+
+<p>
+Operadores:
+<br>
+<b>.</b> = AND
+<br>
+<b>+</b> = OR
+<br>
+<b>-A</b> = NOT A
+</p>
+
+<input
+id="expressao"
+placeholder="Exemplo: (-A.B)+C"
+/>
+
+<button onclick="gerarTabela()">
+Gerar Tabela
+</button>
+
+<div id="info"></div>
+
+<div class="table-container">
+<div id="resultado"></div>
+</div>
+
+</div>
+
+<script>
+
+function obterVariaveis(expr){
+
+    const encontrados =
+        expr.match(/[A-Z]/g) || [];
+
+    return [...new Set(encontrados)].sort();
+}
+
+function converterExpressao(expr){
+
+    let js = expr;
+
+    js = js.replace(/\s+/g,'');
+
+    js = js.replace(/\./g,'&&');
+
+    js = js.replace(/\+/g,'||');
+
+    js = js.replace(/-([A-Z])/g,'!$1');
+
+    return js;
+}
+
+function calcular(expressaoJS,valores){
+
+    let expr = expressaoJS;
+
+    for(const variavel in valores){
+
+        expr = expr.replaceAll(
+            variavel,
+            valores[variavel]
+        );
+    }
+
+    try{
+
+        return eval(expr) ? 1 : 0;
+
+    }catch{
+
+        return "ERRO";
+    }
+}
+
+function gerarTabela(){
+
+    const entrada =
+        document.getElementById("expressao").value
+        .trim();
+
+    if(!entrada){
+
+        alert("Digite uma expressão.");
+        return;
+    }
+
+    const variaveis =
+        obterVariaveis(entrada);
+
+    if(variaveis.length === 0){
+
+        alert("Nenhuma variável encontrada.");
+        return;
+    }
+
+    if(variaveis.length > 8){
+
+        alert("Máximo de 8 variáveis.");
+        return;
+    }
+
+    const exprJS =
+        converterExpressao(entrada);
+
+    const totalLinhas =
+        Math.pow(2,variaveis.length);
+
+    let html = "<table>";
+
+    html += "<thead><tr>";
+
+    variaveis.forEach(v=>{
+        html += `<th>${v}</th>`;
+    });
+
+    html += "<th>Resultado</th>";
+
+    html += "</tr></thead>";
+
+    html += "<tbody>";
+
+    for(let linha=0;linha<totalLinhas;linha++){
+
+        const valores = {};
+
+        html += "<tr>";
+
+        variaveis.forEach((v,index)=>{
+
+            const bit =
+                (linha >>
+                (variaveis.length-index-1))
+                & 1;
+
+            valores[v] = Boolean(bit);
+
+            html += `<td>${bit}</td>`;
+        });
+
+        const resultado =
+            calcular(exprJS,valores);
+
+        html += `<td><b>${resultado}</b></td>`;
+
+        html += "</tr>";
+    }
+
+    html += "</tbody></table>";
+
+    document.getElementById("resultado")
+        .innerHTML = html;
+
+    document.getElementById("info")
+        .innerHTML =
+        `Variáveis: ${variaveis.length}
+         | Combinações: ${totalLinhas}`;
+}
+
+</script>
+
+</body>
+</html>
