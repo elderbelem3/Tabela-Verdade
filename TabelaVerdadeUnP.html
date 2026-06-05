@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A3 Matemática Computacional Aplicada - UnP</title>
+
+<style>
+
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f4f4;
+    margin:0;
+    padding:20px;
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
+    background:white;
+    padding:25px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.15);
+}
+
+.cabecalho{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.cabecalho h2{
+    margin:5px;
+}
+
+.cabecalho h3{
+    margin:5px;
+}
+
+.cabecalho p{
+    margin:8px;
+}
+
+h1{
+    text-align:center;
+}
+
+.descricao{
+    text-align:center;
+    margin-bottom:20px;
+    color:#444;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    font-size:18px;
+    margin-bottom:10px;
+    box-sizing:border-box;
+}
+
+button{
+    background:#0078ff;
+    color:white;
+    border:none;
+    padding:12px 20px;
+    border-radius:5px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+button:hover{
+    opacity:0.9;
+}
+
+.operadores{
+    background:#f8f8f8;
+    padding:12px;
+    border-radius:5px;
+    margin-bottom:15px;
+    border-left:4px solid #0078ff;
+}
+
+#info{
+    margin-top:15px;
+    margin-bottom:15px;
+    font-weight:bold;
+}
+
+.table-container{
+    overflow:auto;
+    max-height:700px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:#0078ff;
+    color:white;
+    position:sticky;
+    top:0;
+}
+
+th,td{
+    border:1px solid #ccc;
+    padding:8px;
+    text-align:center;
+}
+
+tr:nth-child(even){
+    background:#f9f9f9;
+}
+
+.resultado{
+    font-weight:bold;
+}
+
+footer{
+    text-align:center;
+    margin-top:30px;
+    color:#666;
+    font-size:14px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="cabecalho">
+
+    <h2>A3 Matemática Computacional Aplicada</h2>
+
+    <h3>Universidade Potiguar (UnP)</h3>
+
+    <p>Gerador de Tabela Verdade para Expressões Lógicas</p>
+
+    <hr>
+
+</div>
+
+<p class="descricao">
+Esta aplicação gera automaticamente tabelas verdade a partir de
+expressões lógicas booleanas informadas pelo usuário.
+</p>
+
+<h1>Gerador de Tabela Verdade</h1>
+
+<div class="operadores">
+
+    <strong>Operadores suportados:</strong><br><br>
+
+    <strong>.</strong> = AND (E)<br>
+    <strong>+</strong> = OR (OU)<br>
+    <strong>-</strong> = NOT (NÃO)
+
+    <br><br>
+
+    <strong>Exemplos:</strong><br>
+
+    (A.B)+C<br>
+    (-A.B)+C<br>
+    (A+B).(-C)<br>
+    (-A.-B)+(A.B)
+
+</div>
+
+<input
+type="text"
+id="expressao"
+placeholder="Digite a expressão lógica. Exemplo: (-A.B)+C"
+/>
+
+<button onclick="gerarTabela()">
+Gerar Tabela Verdade
+</button>
+
+<div id="info"></div>
+
+<div class="table-container">
+    <div id="resultado"></div>
+</div>
+
+<footer>
+A3 Matemática Computacional Aplicada • Universidade Potiguar (UnP)
+</footer>
+
+</div>
+
+<script>
+
+function obterVariaveis(expressao){
+
+    const letras = expressao.match(/[A-Z]/g) || [];
+
+    return [...new Set(letras)].sort();
+}
+
+function converterExpressao(expressao){
+
+    let expr = expressao;
+
+    expr = expr.replace(/\s+/g,'');
+
+    expr = expr.replace(/\./g,'&&');
+
+    expr = expr.replace(/\+/g,'||');
+
+    expr = expr.replace(/-([A-Z])/g,'!$1');
+
+    return expr;
+}
+
+function calcular(expressaoJS,valores){
+
+    let expr = expressaoJS;
+
+    for(const variavel in valores){
+
+        expr = expr.replaceAll(
+            variavel,
+            valores[variavel]
+        );
+    }
+
+    try{
+
+        return eval(expr) ? 1 : 0;
+
+    }catch(error){
+
+        return "Erro";
+    }
+}
+
+function gerarTabela(){
+
+    const entrada =
+        document
+        .getElementById("expressao")
+        .value
+        .trim();
+
+    if(!entrada){
+
+        alert("Digite uma expressão lógica.");
+        return;
+    }
+
+    const variaveis =
+        obterVariaveis(entrada);
+
+    if(variaveis.length === 0){
+
+        alert("Nenhuma variável encontrada.");
+        return;
+    }
+
+    if(variaveis.length > 8){
+
+        alert("Máximo de 8 variáveis.");
+        return;
+    }
+
+    const expressaoJS =
+        converterExpressao(entrada);
+
+    const totalLinhas =
+        Math.pow(2, variaveis.length);
+
+    let html = "<table>";
+
+    html += "<thead><tr>";
+
+    variaveis.forEach(v => {
+
+        html += `<th>${v}</th>`;
+    });
+
+    html += "<th>Resultado</th>";
+
+    html += "</tr></thead>";
+
+    html += "<tbody>";
+
+    for(let linha = 0; linha < totalLinhas; linha++){
+
+        html += "<tr>";
+
+        const valores = {};
+
+        variaveis.forEach((v,index)=>{
+
+            const bit =
+                (linha >>
+                (variaveis.length-index-1))
+                & 1;
+
+            valores[v] = Boolean(bit);
+
+            html += `<td>${bit}</td>`;
+        });
+
+        const resultado =
+            calcular(expressaoJS,valores);
+
+        html +=
+        `<td class="resultado">${resultado}</td>`;
+
+        html += "</tr>";
+    }
+
+    html += "</tbody></table>";
+
+    document
+    .getElementById("resultado")
+    .innerHTML = html;
+
+    document
+    .getElementById("info")
+    .innerHTML =
+    `Expressão: ${entrada}
+    | Variáveis: ${variaveis.length}
+    | Combinações: ${totalLinhas}`;
+}
+
+</script>
+
+</body>
+</html>
