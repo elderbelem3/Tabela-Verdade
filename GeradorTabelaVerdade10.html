@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Gerador de Tabela Verdade A3</title>
+
+<style>
+body{
+    font-family:Arial, sans-serif;
+    background:#f2f5f9;
+    padding:20px;
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 20px #ccc;
+}
+
+.header{
+    background:linear-gradient(135deg,#0078ff,#00b4ff);
+    color:white;
+    padding:25px;
+    border-radius:15px;
+    text-align:center;
+}
+
+.card{
+    background:#f8f8f8;
+    padding:15px;
+    margin:20px 0;
+    border-left:5px solid #0078ff;
+    border-radius:8px;
+}
+
+input{
+    width:100%;
+    padding:14px;
+    font-size:18px;
+    box-sizing:border-box;
+}
+
+button{
+    margin-top:12px;
+    padding:13px 25px;
+    background:#0078ff;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#005fcc;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+th{
+    background:#0078ff;
+    color:white;
+}
+
+td,th{
+    border:1px solid #aaa;
+    padding:10px;
+    text-align:center;
+}
+
+.erro{
+    color:red;
+    font-weight:bold;
+    margin-top:15px;
+}
+
+code{
+    background:#eee;
+    padding:5px;
+    border-radius:5px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+
+<h1>Gerador de Tabela Verdade</h1>
+
+<h2>A3 Matemática Computacional Aplicada</h2>
+
+<h3>Universidade Potiguar - UnP</h3>
+
+</div>
+
+
+<div class="card">
+
+<h3>Sobre o sistema</h3>
+
+<p>
+Este aplicativo gera automaticamente tabelas verdade a partir de expressões lógicas.
+O sistema identifica as variáveis, calcula todas as combinações possíveis e apresenta os resultados em 0 e 1.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>Operações disponíveis</h3>
+
+<p><b>.</b> representa AND (E)</p>
+
+<p><b>+</b> representa OR (OU)</p>
+
+<p><b>-A</b> representa NOT (NÃO)</p>
+
+<p>Exemplos:</p>
+
+<code>A.B</code>
+
+<br><br>
+
+<code>A+B</code>
+
+<br><br>
+
+<code>(A.B)+C</code>
+
+</div>
+
+
+<div class="card">
+
+<h3>Possibilidades e limitações</h3>
+
+<ul>
+
+<li>Até 8 variáveis.</li>
+
+<li>Máximo de 256 combinações.</li>
+
+<li>Resultados apresentados em 0 e 1.</li>
+
+<li>Identificação automática das entradas.</li>
+
+</ul>
+
+<p>
+Cálculo das possibilidades:
+<br>
+<b>2ⁿ</b> onde n é a quantidade de variáveis.
+</p>
+
+</div>
+
+
+<input id="exp" placeholder="Digite a expressão lógica">
+
+<button onclick="gerar()">Gerar Tabela Verdade</button>
+
+
+<div id="erro" class="erro"></div>
+
+<div id="saida"></div>
+
+
+</div>
+
+
+<script>
+
+
+function gerar(){
+
+let s=document.getElementById("exp").value;
+
+let erro=document.getElementById("erro");
+let saida=document.getElementById("saida");
+
+erro.innerHTML="";
+saida.innerHTML="";
+
+if(!s.trim()){
+    erro.innerHTML="Digite uma expressão.";
+    return;
+}
+
+if(/[^A-Z().+\-\/\s]/.test(s)){
+    erro.innerHTML="Caractere inválido encontrado.";
+    return;
+}
+
+let expressoes=s.split("/").map(e=>e.trim()).filter(e=>e);
+
+if(expressoes.length===0){
+    erro.innerHTML="Nenhuma expressão encontrada.";
+    return;
+}
+
+if(expressoes.some(e =>
+    (e.match(/\(/g)||[]).length !== (e.match(/\)/g)||[]).length
+)){
+    erro.innerHTML="Parênteses incorretos.";
+    return;
+}
+
+let vars=[...new Set(s.match(/[A-Z]/g)||[])].sort();
+
+if(vars.length>8){
+    erro.innerHTML="Limite excedido: máximo de 8 variáveis.";
+    return;
+}
+
+let exprs=[];
+
+for(let e of expressoes){
+
+    let expr=e.replace(/\s/g,"")
+              .replace(/\./g,"&&")
+              .replace(/\+/g,"||")
+              .replace(/-([A-Z])/g,"!$1");
+
+    try{
+        let teste=expr;
+
+        vars.forEach(v=>{
+            teste=teste.replaceAll(v,"true");
+        });
+
+        eval(teste);
+
+    }catch{
+        erro.innerHTML='Expressão inválida: "'+e+'"';
+        return;
+    }
+
+    exprs.push(expr);
+}
+
+let html="<table><tr>";
+
+vars.forEach(v=>html+="<th>"+v+"</th>");
+
+exprs.forEach((e,i)=>{
+    html+="<th>X"+(i+1)+"</th>";
+});
+
+html+="</tr>";
+
+for(let i=0;i<2**vars.length;i++){
+
+    let valores={};
+
+    html+="<tr>";
+
+    vars.forEach((v,j)=>{
+        let b=(i>>(vars.length-j-1))&1;
+        valores[v]=!!b;
+        html+="<td>"+b+"</td>";
+    });
+
+    exprs.forEach(expr=>{
+
+        let calc=expr;
+
+        for(let v in valores){
+            calc=calc.replaceAll(v,valores[v]?"true":"false");
+        }
+
+        try{
+            html+="<td>"+(eval(calc)?1:0)+"</td>";
+        }catch{
+            html+="<td>Erro</td>";
+        }
+
+    });
+
+    html+="</tr>";
+}
+
+html+="</table>";
+saida.innerHTML=html;
+
+}
+
+</script>
+
+</body>
+</html>
